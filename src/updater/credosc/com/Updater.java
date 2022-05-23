@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -33,16 +34,24 @@ public class Updater {
 	
 	public Updater() {
 		logger.write("Loading properties...");
+				
+		File test = new File("app.properties");
 		
+		if(!test.exists()) {
+			logger.write("NO APP PROPERTIES DETECTED!");
+			System.exit(0);
+		}else {
+			logger.write("Found app properties");
+		}
 		
 		
 		try {
 			loadProperties();
 		}catch(Exception e) {
-			
+			e.printStackTrace();
 		}
 		
-		logger.write("Updater version "+props.getProperty("updater_version"));
+		//logger.write("Updater version "+props.getProperty("updater_version"));
 		
 		
 		logger.write("Downloading release file...");
@@ -62,12 +71,12 @@ public class Updater {
 		for(File f : dir.listFiles()) {
 			currentReleaseFile = f.getName();
 		}
-		if(currentReleaseFile == null || currentReleaseFile == "") {
-			logger.write("No version detected... Downloading latest.");
-			downloadLatest();
-		}else {
+	//	if(currentReleaseFile == null || currentReleaseFile == "") {
+	//		logger.write("No version detected... Downloading latest.");
+	//		downloadLatest();
+//		}else {
 			checkIfNewest(currentReleaseFile);
-		}
+//		}
 	}
 	
 	void checkIfNewest(String currentReleaseFile) {
@@ -97,6 +106,9 @@ public class Updater {
 	}
 	
 	void downloadLatest() {
+		
+		this.downloadReleaseFile();
+		
 		logger.write("Downloading latest version from "+releaseRepo);
 		logger.write("Saving as... "+saveFileName);
 		
@@ -116,6 +128,7 @@ public class Updater {
 		try { 
 
 		FileOutputStream out = new FileOutputStream(configFile);
+	    //InputStream inputStream = this.getClass().getResourceAsStream("/app.properties");
 		props.setProperty("downloaded_version", latestRelease);
 		props.setProperty("runnable_name", saveFileName);
 		runnableName = saveFileName;
@@ -128,25 +141,32 @@ public class Updater {
 	}
 	
 	void loadProperties() throws Exception{
-		 FileReader reader = new FileReader(configFile);
-		 props = new Properties();
-		 props.load(reader);
+        InputStream inputStream = this.getClass().getResourceAsStream("/app.properties");
+        
+        //FileReader reader = new FileReader(inputStream);
+		 props = new Properties();		 
+		 props.load(inputStream);
+		 
 		 
 		 app = props.getProperty("app");
 		 releaseRepo  = props.getProperty("release_repo");
 		 releaseDirectory = "releases";
 		 currentRelease = props.getProperty("downloaded_version");
 		 runnableName = props.getProperty("runnable_name");
+		 
+		 logger.write("Detected app: "+releaseRepo);
 	}
 	
 	void downloadReleaseFile() {
 		try {
 			InputStream in = new URL("https://raw.githubusercontent.com/romanwbruce/DummyReleases/main/"+app+"/"+app+".properties").openStream();
-			Files.copy(in, Paths.get("updates.properties"), StandardCopyOption.REPLACE_EXISTING);
+		
+
 			
-			 FileReader reader2 = new FileReader(new File("updates.properties"));
+			Files.copy(in, Paths.get("./updates.properties"), StandardCopyOption.REPLACE_EXISTING);
+	         InputStream inputStream = this.getClass().getResourceAsStream("/updates.properties");
 			 Properties props2 = new Properties();
-			 props2.load(reader2);
+			 props2.load(inputStream);
 			 
 			 this.latestRelease = props2.getProperty("current_version");
 			 this.latestSource = props2.getProperty("exec_download");

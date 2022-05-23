@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 
+import javax.swing.JOptionPane;
+
 public class Updater {
 	
 	RuntimeLogger logger = new RuntimeLogger();
@@ -73,6 +75,7 @@ public class Updater {
 		logger.write("Current downloaded version: "+currentRelease);
 		
 		if(!currentRelease.equalsIgnoreCase(latestRelease)) {
+			JOptionPane.showMessageDialog(null, "New version detected: "+latestRelease+"");
 			logger.write("---- NEW CURRENT VERSION DETECTED: "+latestRelease +" ----");
 			logger.write("Latest download: "+latestSource);
 			downloadLatest();
